@@ -1,0 +1,47 @@
+external_secret_template: |
+  ---
+  apiVersion: external-secrets.io/v1
+  kind: ExternalSecret
+  metadata:
+    name: "<%= external_secret_name %>"
+    namespace: "<%= namespace %>"
+  spec:
+    data:
+    - remoteRef:
+        key: "<%= secret_name %>"
+        property: password
+      secretKey: password
+    - remoteRef:
+        key: "<%= secret_name %>"
+        property: username
+      secretKey: username
+    secretStoreRef:
+      kind: ClusterSecretStore
+      name: onepassword
+    target:
+      name: "<%= external_secret_name %>"
+      template:
+        data:
+          credentials: <%= credentials_json.inspect %>
+
+push_secret_template: |
+  ---
+  apiVersion: external-secrets.io/v1alpha1
+  kind: PushSecret
+  metadata:
+    name: "<%= push_secret_name %>"
+    namespace: "<%= namespace %>"
+  spec:
+    data:
+    - match:
+        remoteRef:
+          remoteKey: "<%= secret_path %>"
+        secretKey: "<%= kube_secret_key %>"
+    deletionPolicy: Delete
+    refreshInterval: 1m
+    secretStoreRefs:
+    - kind: ClusterSecretStore
+      name: vault
+    selector:
+      secret:
+        name: "<%= external_secret_name %>"

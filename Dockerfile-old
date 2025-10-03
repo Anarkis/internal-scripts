@@ -1,0 +1,16 @@
+FROM registry.suse.com/bci/golang:stable as build
+WORKDIR /app
+
+ENV VERSION=v0.0.4
+ENV APP_NAME=sync-pwd
+ENV ARCHIVE=sync-pwd-sync-pwd-v0.0.4-linux-x64.tar.gz 
+ENV DOWNLOAD_URL="https://github.com/Anarkis/kitchen/releases/download/${APP_NAME}-${VERSION}/${ARCHIVE}"
+
+RUN curl -OL "${DOWNLOAD_URL}" ; \
+  tar -xzf "${ARCHIVE}"
+
+FROM registry.suse.com/bci/bci-micro:15.7
+COPY --from=build /app/sync-pwd /usr/local/bin/sync-pwd
+COPY entrypoint.sh entrypoint.sh
+
+ENTRYPOINT ["/app/entrypoint.sh"]
